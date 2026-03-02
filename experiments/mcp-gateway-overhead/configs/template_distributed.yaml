@@ -1,0 +1,132 @@
+---
+# Headless service: lets workers discover the master by DNS name.
+apiVersion: v1
+kind: Service
+metadata:
+  name: __JOB_NAME__-master
+  namespace: performance-test
+  labels:
+    test: mock-perf-distributed
+spec:
+  selector:
+    app: __JOB_NAME__-master
+  ports:
+  - port: 5557
+    name: locust
+  clusterIP: None
+---
+# Locust master: coordinates workers, collects all stats, writes CSV.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: __JOB_NAME__-master
+  namespace: performance-test
+  labels:
+    test: mock-perf-distributed
+    role: master
+    target: "__TARGET__"
+    users: "__USERS__"
+spec:
+  template:
+    metadata:
+      labels:
+        app: __JOB_NAME__-master
+    spec:
+      nodeSelector:
+        node.kubernetes.io/instance-type: gx3-24x120x1l40s
+      containers:
+      - name: locust
+        image: locustio/locust:2.32.7
+        ports:
+        - containerPort: 5557
+        env:
+        - name: TOOL_PREFIX
+          value: "__TOOL_PREFIX__"
+        - name: HOST_HEADER
+          value: "__HOST_HEADER__"
+        - name: CALLS_PER_SESSION
+          value: "__CPS__"
+        - name: WARMUP_SECONDS
+          value: "__WARMUP__"
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          locust -f /scripts/locustfile.py \
+            --master \
+            --expect-workers=__NUM_WORKERS__ \
+            --host __HOST_URL__ \
+            --headless \
+            -u __USERS__ \
+            -r __USERS__ \
+            -t __DURATION__s \
+            --stop-timeout 10 \
+            --csv /tmp/results \
+            --csv-full-history \
+            2>&1
+          echo "===CSV_STATS==="
+          cat /tmp/results_stats.csv 2>/dev/null
+          echo "===CSV_STATS_HISTORY==="
+          cat /tmp/results_stats_history.csv 2>/dev/null
+          echo "===CSV_FAILURES==="
+          cat /tmp/results_failures.csv 2>/dev/null
+          echo "===CSV_END==="
+          sleep 15
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+      volumes:
+      - name: scripts
+        configMap:
+          name: locust-scripts-mock
+      restartPolicy: Never
+  backoffLimit: 0
+---
+# Locust workers: each handles a slice of the total users.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: __JOB_NAME__-workers
+  namespace: performance-test
+  labels:
+    test: mock-perf-distributed
+    role: worker
+    target: "__TARGET__"
+    users: "__USERS__"
+spec:
+  parallelism: __NUM_WORKERS__
+  completions: __NUM_WORKERS__
+  template:
+    metadata:
+      labels:
+        app: __JOB_NAME__-workers
+    spec:
+      nodeSelector:
+        node.kubernetes.io/instance-type: gx3-24x120x1l40s
+      containers:
+      - name: locust
+        image: locustio/locust:2.32.7
+        env:
+        - name: TOOL_PREFIX
+          value: "__TOOL_PREFIX__"
+        - name: HOST_HEADER
+          value: "__HOST_HEADER__"
+        - name: CALLS_PER_SESSION
+          value: "__CPS__"
+        - name: WARMUP_SECONDS
+          value: "__WARMUP__"
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          locust -f /scripts/locustfile.py \
+            --worker \
+            --master-host __JOB_NAME__-master \
+            2>&1
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+      volumes:
+      - name: scripts
+        configMap:
+          name: locust-scripts-mock
+      restartPolicy: Never
+  backoffLimit: 0

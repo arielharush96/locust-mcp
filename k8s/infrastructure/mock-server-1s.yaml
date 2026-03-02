@@ -1,0 +1,47 @@
+---
+# HTTPRoute for 1-second delay mock server.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: perf-mock-1s-route
+  namespace: performance-test
+spec:
+  parentRefs:
+  - name: mcp-gateway
+    namespace: gateway-system
+  hostnames:
+  - perf-mock-1s.mcp.local
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /mcp
+    backendRefs:
+    - name: perf-mock-server-1s
+      port: 8080
+---
+# DestinationRule: disable Istio mTLS for the 1s mock server.
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: perf-mock-server-1s-mtls-disable
+  namespace: istio-system
+spec:
+  host: perf-mock-server-1s.performance-test.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+---
+# MCPServerRegistration for the 1s-delay mock server.
+# Same tools as 0ms server (alpha..juliet), prefix mock1s_
+apiVersion: mcp.kagenti.com/v1alpha1
+kind: MCPServerRegistration
+metadata:
+  name: perf-mock-server-1s
+  namespace: performance-test
+spec:
+  toolPrefix: mock1s_
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: perf-mock-1s-route

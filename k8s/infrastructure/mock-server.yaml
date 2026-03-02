@@ -1,0 +1,50 @@
+---
+# HTTPRoute for mock MCP server.
+# Hostname matches the *.mcp.local wildcard listener on the MCP Gateway.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: perf-mock-route
+  namespace: performance-test
+spec:
+  parentRefs:
+  - name: mcp-gateway
+    namespace: gateway-system
+  hostnames:
+  - perf-mock.mcp.local
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /mcp
+    backendRefs:
+    - name: perf-mock-server
+      port: 8080
+---
+# DestinationRule: disable Istio mTLS for the mock server.
+# Required when the Gateway's Envoy enforces ISTIO_MUTUAL by default
+# but the mock server is plain HTTP.
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: perf-mock-server-mtls-disable
+  namespace: istio-system
+spec:
+  host: perf-mock-server.performance-test.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+---
+# MCPServerRegistration: registers the mock server with the MCP Gateway controller.
+# Controller writes ConfigMap → Broker discovers tools → Router handles prefix routing.
+apiVersion: mcp.kagenti.com/v1alpha1
+kind: MCPServerRegistration
+metadata:
+  name: perf-mock-server
+  namespace: performance-test
+spec:
+  toolPrefix: mock_
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: perf-mock-route

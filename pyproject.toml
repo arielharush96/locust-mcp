@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "locust-mcp"
+version = "0.1.0"
+description = "Locust load testing for MCP (Model Context Protocol) servers"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+authors = [
+    {name = "MCP Gateway Authors"},
+]
+keywords = ["locust", "mcp", "load-testing", "model-context-protocol", "performance"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+    "Topic :: System :: Benchmark",
+]
+dependencies = [
+    "locust>=2.32",
+    "requests>=2.31",
+]
+
+[project.urls]
+Homepage = "https://github.com/Kuadrant/locust-mcp"
+Repository = "https://github.com/Kuadrant/locust-mcp"
+Issues = "https://github.com/Kuadrant/locust-mcp/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]

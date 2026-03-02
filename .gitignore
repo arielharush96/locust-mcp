@@ -1,0 +1,21 @@
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# go binaries
+mock-servers/perf-mock-server/perf-mock-server
+mock-servers/perf-mock-server-1s/perf-mock-server-1s
+
+# experiment results (not tracked — too large)
+experiments/*/results/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store

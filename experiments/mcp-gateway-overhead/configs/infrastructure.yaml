@@ -1,0 +1,52 @@
+---
+# HTTPRoute for perf-mock-server: allows gateway to route traffic to it.
+# Hostname perf-mock.mcp.local matches the *.mcp.local wildcard listener on the gateway.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: perf-mock-route
+  namespace: performance-test
+spec:
+  parentRefs:
+  - name: mcp-gateway
+    namespace: gateway-system
+  hostnames:
+  - perf-mock.mcp.local
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /mcp
+    backendRefs:
+    - name: perf-mock-server
+      port: 8080
+---
+# DestinationRule: disable Istio mTLS for perf-mock-server.
+# The default DestinationRule in istio-system enforces ISTIO_MUTUAL on *.cluster.local.
+# Without this override, the Gateway's Envoy tries TLS to the plain-HTTP mock server → 503.
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: perf-mock-server-mtls-disable
+  namespace: istio-system
+spec:
+  host: perf-mock-server.performance-test.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+---
+# MCPServerRegistration: registers perf-mock-server with the MCP gateway controller.
+# Controller writes ConfigMap → Broker discovers tools → Router knows prefix routing.
+# Tools: alpha, bravo, charlie, delta, echo, foxtrot, golf, hotel, india, juliet
+# Via gateway they become: mock_alpha, mock_bravo, ...
+apiVersion: mcp.kagenti.com/v1alpha1
+kind: MCPServerRegistration
+metadata:
+  name: perf-mock-server
+  namespace: performance-test
+spec:
+  toolPrefix: mock_
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: perf-mock-route

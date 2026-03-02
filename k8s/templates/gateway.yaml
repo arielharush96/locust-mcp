@@ -1,0 +1,57 @@
+---
+# Single-pod Locust job: via MCP Gateway.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: __JOB_NAME__
+  namespace: __NAMESPACE__
+  labels:
+    test: locust-mcp
+    target: gateway
+    users: "__USERS__"
+spec:
+  template:
+    metadata:
+      labels:
+        app: __JOB_NAME__
+    spec:
+      containers:
+      - name: locust
+        image: locustio/locust:2.32.7
+        env:
+        - name: TOOL_PREFIX
+          value: "__TOOL_PREFIX__"
+        - name: HOST_HEADER
+          value: "__HOST_HEADER__"
+        - name: CALLS_PER_SESSION
+          value: "__CPS__"
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          locust -f /scripts/locustfile.py \
+            --host __HOST_URL__ \
+            --headless \
+            -u __USERS__ \
+            -r __USERS__ \
+            -t __DURATION__s \
+            --stop-timeout 5 \
+            --csv /tmp/results \
+            --csv-full-history \
+            2>&1
+          echo "===CSV_STATS==="
+          cat /tmp/results_stats.csv 2>/dev/null
+          echo "===CSV_STATS_HISTORY==="
+          cat /tmp/results_stats_history.csv 2>/dev/null
+          echo "===CSV_FAILURES==="
+          cat /tmp/results_failures.csv 2>/dev/null
+          echo "===CSV_END==="
+          sleep 15
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+      volumes:
+      - name: scripts
+        configMap:
+          name: __CONFIGMAP_NAME__
+      restartPolicy: Never
+  backoffLimit: 0

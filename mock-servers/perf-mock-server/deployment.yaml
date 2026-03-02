@@ -1,0 +1,61 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: perf-mock-server
+  namespace: performance-test
+  labels:
+    app: perf-mock-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: perf-mock-server
+  template:
+    metadata:
+      labels:
+        app: perf-mock-server
+    spec:
+      nodeSelector:
+        node.kubernetes.io/instance-type: gx3-24x120x1l40s
+      containers:
+      - name: server
+        image: quay.io/rh-ee-aharush/perf-mock-server:latest
+        imagePullPolicy: Always
+        args: ["--addr", ":8080"]
+        env:
+        - name: GOGC
+          value: "off"
+        - name: GOMEMLIMIT
+          value: "60GiB"
+        resources:
+          requests:
+            memory: "32Gi"
+          limits:
+            memory: "64Gi"
+        ports:
+        - containerPort: 8080
+          name: http
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+          timeoutSeconds: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: perf-mock-server
+  namespace: performance-test
+  labels:
+    app: perf-mock-server
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  sessionAffinity: ClientIP
+  selector:
+    app: perf-mock-server
+  type: ClusterIP

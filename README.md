@@ -37,13 +37,6 @@ locust-mcp/
 ```
 
 ## Installation
-
-```bash
-pip install locust-mcp
-```
-
-Or from source:
-
 ```bash
 git clone https://github.com/Kuadrant/locust-mcp.git
 cd locust-mcp
@@ -92,9 +85,8 @@ Both servers expose 10 tools (alpha through juliet) using the `modelcontextproto
 
 | Template | Description |
 |---|---|
-| `templates/distributed.yaml` | Master + workers for high-concurrency tests |
 | `templates/rampup.yaml` | Distributed ramp-up (gradual user increase) |
-| `templates/rampup-single.yaml` | Single-pod ramp-up (simpler, no worker coordination) |
+| `templates/rampup-single.yaml` | Single-pod ramp-up |
 | `templates/server-direct.yaml` | Single pod, direct to MCP server |
 | `templates/gateway.yaml` | Single pod, via MCP Gateway |
 
@@ -118,15 +110,12 @@ All templates use placeholder variables that are replaced by the orchestration s
 | `__HOST_URL__` | Target MCP server URL |
 | `__TOOL_PREFIX__` | Tool name prefix for gateway routing |
 | `__HOST_HEADER__` | Host header for gateway routing |
-| `__CPS__` | Calls per session (0 = persistent) |
+| `__CPS__` | Calls per session (0 = same session for all rest of tool calling till the end of the experiment) |
 | `__WARMUP__` | Warmup seconds before stats reset |
-| `__NUM_WORKERS__` | Number of Locust worker pods (distributed only) |
+| `__NUM_WORKERS__` | Number of Locust worker pods (multiple workers let us generate enough concurrent load (8192 users) |
 | `__SPAWN_RATE__` | Users spawned per second (ramp-up only) |
 | `__TARGET__` | Label value: `server` or `gateway` |
 
-## Experiments
-
-The `experiments/` directory contains complete, reproducible experiment suites with orchestration scripts, analysis tools, and Kubernetes-specific config templates.
 
 ### MCP Gateway Overhead (`experiments/mcp-gateway-overhead/`)
 
@@ -148,30 +137,11 @@ Each run script:
 3. Collects CSV results and pod metrics
 4. Generates comparison plots
 
-## Examples
-
-- **[basic](examples/basic/)** — minimal example with two tools
-- **[mock_server](examples/mock_server/)** — 10 zero-latency tools for overhead measurement
-- **[kubernetes_mcp](examples/kubernetes_mcp/)** — real Kubernetes MCP server with cluster discovery
-
-## MCP Protocol Support
-
-- Transport: [Streamable HTTP](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http)
-- JSON-RPC 2.0 over HTTP POST
-- SSE (Server-Sent Events) response parsing
-- Session management via `Mcp-Session-Id` header
-- Protocol version: `2025-03-26`
 
 ## Contributing
 
 Contributions welcome. Please open an issue or PR.
 
-```bash
-# dev setup
-git clone https://github.com/Kuadrant/locust-mcp.git
-cd locust-mcp
-pip install -e ".[dev]"
-```
 
 ## License
 

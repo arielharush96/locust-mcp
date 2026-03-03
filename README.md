@@ -2,7 +2,7 @@
 
 Load testing for [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) servers using [Locust](https://locust.io/).
 
-`locust-mcp` provides an MCP Streamable HTTP client and a base Locust user class that handles the full MCP session lifecycle: initialize, tool discovery, and tool calls.
+`locust-mcp` provides an MCP client and a base Locust "LLM-user" class that handles the full MCP session lifecycle: initialize, tool discovery, and tool calls.
 
 ## Installation
 ```bash

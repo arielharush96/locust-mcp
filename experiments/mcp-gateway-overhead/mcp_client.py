@@ -149,7 +149,7 @@ class MCPClient:
         return self._send("initialize", {
             "protocolVersion": "2025-03-26",
             "capabilities": {"roots": {"listChanged": True}},
-            "clientInfo": {"name": "mcp-load-tester", "version": "1.0.0"},
+            "clientInfo": {"name": "locust-mcp", "version": "1.0.0"},
         })
 
     def initialized_notification(self) -> MCPResponse:

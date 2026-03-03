@@ -16,11 +16,9 @@ spec:
       labels:
         app: perf-mock-server-1s
     spec:
-      nodeSelector:
-        node.kubernetes.io/instance-type: gx3-24x120x1l40s
       containers:
       - name: server
-        image: quay.io/rh-ee-aharush/perf-mock-server-1s:latest
+        image: quay.io/YOUR_ORG/perf-mock-server-1s:latest
         imagePullPolicy: Always
         args: ["--addr", ":8080"]
         env:

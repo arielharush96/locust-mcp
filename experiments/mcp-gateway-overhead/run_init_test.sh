@@ -10,8 +10,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONFIG_DIR="${SCRIPT_DIR}/configs"
-LOAD_TESTER_DIR="${SCRIPT_DIR}/../mcp-load-tester"
-MOCK_SERVER_DIR="${SCRIPT_DIR}/../phase2/perf-mock-server"
+LOAD_TESTER_DIR="${SCRIPT_DIR}"
+MOCK_SERVER_DIR="${SCRIPT_DIR}/../../mock-servers/perf-mock-server"
 RESULTS_BASE="${SCRIPT_DIR}/results"
 NAMESPACE="performance-test"
 

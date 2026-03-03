@@ -32,8 +32,6 @@ spec:
       labels:
         app: __JOB_NAME__-master
     spec:
-      nodeSelector:
-        node.kubernetes.io/instance-type: gx3-24x120x1l40s
       containers:
       - name: locust
         image: locustio/locust:2.32.7
@@ -100,8 +98,6 @@ spec:
       labels:
         app: __JOB_NAME__-workers
     spec:
-      nodeSelector:
-        node.kubernetes.io/instance-type: gx3-24x120x1l40s
       containers:
       - name: locust
         image: locustio/locust:2.32.7

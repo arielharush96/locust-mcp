@@ -15,8 +15,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONFIG_DIR="${SCRIPT_DIR}/configs"
-LOAD_TESTER_DIR="${SCRIPT_DIR}/../mcp-load-tester"
-MOCK_SERVER_DIR="${SCRIPT_DIR}/../phase2/perf-mock-server"
+LOAD_TESTER_DIR="${SCRIPT_DIR}"
+MOCK_SERVER_DIR="${SCRIPT_DIR}/../../mock-servers/perf-mock-server"
 RESULTS_BASE="${SCRIPT_DIR}/results"
 NAMESPACE="performance-test"
 
@@ -49,7 +49,7 @@ START_TIME=$(date +%s)
 
 # ── prometheus config ─────────────────────────────────────────────────────────
 
-PROM_URL="https://prometheus-k8s-openshift-monitoring.apps.ariel-train-sno.ibm.rhperfscale.org"
+PROM_URL="${PROM_URL:-}"
 PROM_TOKEN=""
 PROM_NAMESPACES="performance-test|mcp-system|gateway-system|istio-system"
 

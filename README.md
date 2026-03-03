@@ -4,54 +4,11 @@ Load testing for [MCP (Model Context Protocol)](https://modelcontextprotocol.io/
 
 `locust-mcp` provides an MCP Streamable HTTP client and a base Locust user class that handles the full MCP session lifecycle: initialize, tool discovery, and tool calls.
 
-## Repository Structure
-
-```
-locust-mcp/
-├── src/locust_mcp/               # Python package
-│   ├── client.py                 # MCP Streamable HTTP client
-│   └── user.py                   # Base MCPUser class for Locust
-├── examples/                     # Example locustfiles
-│   ├── basic/                    # Minimal 2-tool example
-│   ├── mock_server/              # 10 zero-latency tools (gateway overhead)
-│   └── kubernetes_mcp/           # Real Kubernetes MCP server
-├── mock-servers/                 # Mock MCP servers 
-│   ├── perf-mock-server/         # 0ms latency - isolates gateway overhead
-│   └── perf-mock-server-1s/      # 1s latency - proves constant overhead
-├── k8s/                          # Reusable Kubernetes templates (generalized)
-│   ├── templates/                # Locust job templates
-│   └── infrastructure/           # Mock server gateway integration
-├── experiments/                  # Experiment orchestration & analysis
-│   └── mcp-gateway-overhead/     # MCP Gateway overhead characterization
-│       ├── configs/              # Experiment-specific K8s YAML templates
-│       ├── run_distributed.sh    # 0ms overhead sweep (2–512 users)
-│       ├── run_distributed_1s.sh # 1s overhead sweep (2–512 users)
-│       ├── run_rampup.sh         # Ramp-up saturation test (8192 users)
-│       ├── run_init_test.sh      # Initialize/tools_list metrics
-│       ├── generate_plots.py     # Overhead comparison bar charts
-│       ├── generate_rampup_plots.py  # Ramp-up time-series plots
-│       └── generate_cpu_plots.py # CPU/memory utilization plots
-├── Dockerfile
-├── pyproject.toml
-└── LICENSE
-```
-
 ## Installation
 ```bash
 git clone https://github.com/Kuadrant/locust-mcp.git
 cd locust-mcp
 pip install -e .
-```
-
-Run it:
-
-```bash
-# direct to MCP server
-locust -f locustfile.py --host http://localhost:8080 --headless -u 10 -r 2 -t 60s
-
-# via MCP Gateway (with tool prefix and Host header)
-TOOL_PREFIX="myprefix_" HOST_HEADER="myserver.mcp.local" \
-    locust -f locustfile.py --host http://gateway:8080 --headless -u 10 -r 2 -t 60s
 ```
 
 ## Environment Variables

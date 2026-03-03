@@ -2,7 +2,7 @@
 
 Load testing for [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) servers using [Locust](https://locust.io/).
 
-`locust-mcp` provides an MCP Streamable HTTP client and a base Locust user class that handles the full MCP session lifecycle — initialize, tool discovery, and tool calls — so you can focus on defining your workload.
+`locust-mcp` provides an MCP Streamable HTTP client and a base Locust user class that handles the full MCP session lifecycle: initialize, tool discovery, and tool calls.
 
 ## Repository Structure
 
@@ -15,9 +15,9 @@ locust-mcp/
 │   ├── basic/                    # Minimal 2-tool example
 │   ├── mock_server/              # 10 zero-latency tools (gateway overhead)
 │   └── kubernetes_mcp/           # Real Kubernetes MCP server
-├── mock-servers/                 # Mock MCP servers (Go)
-│   ├── perf-mock-server/         # 0ms latency — isolates gateway overhead
-│   └── perf-mock-server-1s/      # 1s latency — proves constant overhead
+├── mock-servers/                 # Mock MCP servers 
+│   ├── perf-mock-server/         # 0ms latency - isolates gateway overhead
+│   └── perf-mock-server-1s/      # 1s latency - proves constant overhead
 ├── k8s/                          # Reusable Kubernetes templates (generalized)
 │   ├── templates/                # Locust job templates
 │   └── infrastructure/           # Mock server gateway integration
@@ -50,26 +50,6 @@ cd locust-mcp
 pip install -e .
 ```
 
-## Quick Start
-
-Create a `locustfile.py`:
-
-```python
-from locust import task
-from locust_mcp import MCPUser
-
-
-class MyMCPTest(MCPUser):
-    tools = [
-        {"name": "echo", "args": {"message": "hello"}},
-        {"name": "time", "args": {}},
-    ]
-
-    @task
-    def call_tools(self):
-        self.call_next_tool()
-```
-
 Run it:
 
 ```bash
@@ -81,22 +61,6 @@ TOOL_PREFIX="myprefix_" HOST_HEADER="myserver.mcp.local" \
     locust -f locustfile.py --host http://gateway:8080 --headless -u 10 -r 2 -t 60s
 ```
 
-## How It Works
-
-Each Locust user maintains its own MCP session:
-
-```
-User spawns → initialize → initialized notification → tools/list → tool calls (round-robin)
-                                                                        ↓
-                                                              session restart (if CPS > 0)
-```
-
-The `MCPUser` base class handles:
-- **Session lifecycle**: `initialize` → `initialized_notification` → `tools/list`
-- **Session restart**: configurable via `CALLS_PER_SESSION` (0 = persistent session)
-- **Locust integration**: all MCP requests are reported to Locust stats automatically
-- **Gateway routing**: optional `TOOL_PREFIX` and `HOST_HEADER` for MCP Gateway
-
 ## Environment Variables
 
 | Variable | Default | Description |
@@ -106,45 +70,6 @@ The `MCPUser` base class handles:
 | `CALLS_PER_SESSION` | `0` | Tool calls before session restart (0 = persistent) |
 | `WARMUP_SECONDS` | `0` | Seconds to warm up before resetting stats (0 = disabled) |
 
-## API
-
-### MCPClient
-
-Low-level MCP Streamable HTTP client:
-
-```python
-from locust_mcp import MCPClient
-
-client = MCPClient(base_url="http://localhost:8080")
-r = client.initialize()
-client.initialized_notification()
-r = client.list_tools()
-r = client.call_tool("echo", {"message": "hello"})
-```
-
-### MCPUser
-
-Base Locust user class. Subclass it and define your tools:
-
-```python
-from locust import task
-from locust_mcp import MCPUser
-
-
-class MyTest(MCPUser):
-    tools = [
-        {"name": "tool_a", "args": {"key": "value"}},
-        {"name": "tool_b", "args": {}},
-    ]
-
-    @task
-    def run(self):
-        # round-robin through tools
-        self.call_next_tool()
-
-        # or call a specific tool
-        self.call_tool("tool_a", {"key": "value"})
-```
 
 **Methods:**
 - `call_next_tool()` — call the next tool in round-robin sequence
@@ -162,19 +87,6 @@ The `mock-servers/` directory contains Go-based MCP servers for performance test
 | `perf-mock-server-1s` | 1s | Proves gateway overhead is constant and additive, not proportional |
 
 Both servers expose 10 tools (alpha through juliet) using the `modelcontextprotocol/go-sdk` with Streamable HTTP transport.
-
-### Building
-
-```bash
-cd mock-servers/perf-mock-server
-GOOS=linux GOARCH=amd64 go build -o perf-mock-server .
-podman build -t quay.io/your-org/perf-mock-server:latest .
-podman push quay.io/your-org/perf-mock-server:latest
-```
-
-## Kubernetes Templates
-
-The `k8s/` directory contains reusable Kubernetes Job templates for running load tests inside a cluster.
 
 ### Templates
 
